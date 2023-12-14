@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobile-First Web App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        select {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 15px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #result {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Mobile-First Web App</h1>
+
+    <label for="cable_size">Select Cable Size:</label>
+    <select id="cable_size"></select>
+
+    <label for="tool">Select Tool:</label>
+    <select id="tool"></select>
+
+    <button onclick="getCrimps()">Get Crimps</button>
+
+    <div id="result"></div>
+
+    <script>
+function fetchAndPopulateDropdown(apiEndpoint, dropdownId) {
+    fetch(apiEndpoint, { mode: 'cors' })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Network response was not ok: ${response.statusText}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            const dropdown = document.getElementById(dropdownId);
+
+            if (!data || !data.value || !Array.isArray(data.value)) {
+                console.error('Invalid data format:', data);
+                return;
+            }
+
+            dropdown.innerHTML = ""; // Clear existing options
+            data.value.forEach(option => {
+                const optionElement = document.createElement("option");
+                optionElement.value = option;
+                optionElement.text = option;
+                dropdown.appendChild(optionElement);
+            });
+        })
+        .catch(error => {
+            console.error('Error fetching data:', error.message);
+        });
+}
+
+function getCrimps() {
+    var selectedCableSize = document.getElementById("cable_size").value;
+    var selectedTool = document.getElementById("tool").value;
+
+    // Construct the URL with selected cable and tool
+    var apiUrl = `/proxy/getCrimps?cable=${encodeURIComponent(selectedCableSize)}&tool=${encodeURIComponent(selectedTool)}`;
+
+    fetch(apiUrl, {
+        method: 'GET',
+        mode: 'cors',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`Network response was not ok: ${response.statusText}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        // Assuming the response format is { "value": 1.0 }
+        const crimpsValue = data.value;
+
+        // Update the DOM or perform any other actions with the crimpsValue
+        document.getElementById("result").innerText = `Crimps value: ${crimpsValue}`;
+    })
+    .catch(error => {
+        console.error('Error fetching crimps:', error.message);
+    });
+}
+
+        // Fetch and populate cable sizes dropdown using proxy route
+        fetchAndPopulateDropdown('/proxy/getCableList', 'cable_size');
+
+        // Fetch and populate tools dropdown
+        fetchAndPopulateDropdown('/proxy/getTools', 'tool');
+    </script>
+
+</body>
+</html>
